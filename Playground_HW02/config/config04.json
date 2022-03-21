@@ -1,0 +1,19 @@
+{
+    "concat_nframes": 25,
+    "train_ratio": 0.8,
+
+    "seed": 0,
+    "batch_size": 512,
+    "num_epoch": 200,
+    "learning_rate": 0.00001,
+    "model_path": "./model.ckpt",
+
+    "input_dim": 39,
+    "hidden_layers": 3,
+    "hidden_dim": 128,
+
+    "model_name": "bidirection_lstm_model3",
+
+    "accuracy": 0.74563
+
+}

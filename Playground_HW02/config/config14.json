@@ -1,0 +1,22 @@
+{
+    "concat_nframes": 73,
+    "train_ratio": 0.99,
+
+    "seed": 0,
+    "batch_size": 32,
+    "num_epoch": 10,
+    "learning_rate": 0.0001,
+    "lookahead": 1,
+    "model_path": "./model.ckpt",
+
+    "loss": "sequence",
+    "input_dim": 39,
+    "hidden_layers": 9,
+    "hidden_dim": 256,
+
+    "model_name": "bidirection_lstm_model5",
+
+    "accuracy": 0.85880,
+    "loss": "Val Acc: 0.862 loss: ?"
+
+}
