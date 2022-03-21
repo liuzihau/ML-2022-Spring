@@ -1,0 +1,26 @@
+{
+    "seed": 87,
+    "data_dir": "./data",
+    "save_path": "model.ckpt",
+
+
+    "batch_size": 32,
+    "n_workers": 0,
+    "valid_steps": 2000,
+    "warmup_steps": 1000,
+    "save_steps": 10000,
+    "total_steps": 300000,
+
+    "d_model" : 256,
+    "dropout" : 0.1,
+    "feedforward": 512,
+    "nhead": 16,
+    "num_layers": 1,
+    "linear": 0,
+
+
+    "data_dir_test_set": "./data",
+    "model_path": "./model.ckpt",
+    "output_path": "./output.csv",
+    "step 290000, best model saved. (accuracy=0.8233)": "0.73700"
+}
