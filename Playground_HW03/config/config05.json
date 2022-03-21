@@ -1,0 +1,32 @@
+{
+   "seed" : 6666,
+
+   "_exp_name" : "sample",
+   "_dataset_dir" : "./food11",
+
+   "lambda": 3,
+   "random_transform_times": 6,
+
+   "model_name": "convnext",
+   "batch_size" : 32,
+   "n_epochs" : 5,
+   "patience" : 300,
+
+   "criterion" : "CrossEntropy",
+
+   "optimizer" : "AdamW",
+   "learning_rate": 0.0003,
+   "weight_decay": 0.00001,
+   "momentum":0.001,
+
+   "lookahead" : 0,
+
+   "stn" : "Thin_plate_spline",
+   "ensemble": 1,
+   "ensemble_ratio": 0.5,
+
+   "change": "lam [0.2,0.33,0.4] --> random beta(alpha,alpha) * 3 alpha = 0.8",
+
+   "[ Valid | 005/005 ] loss = 1.66988, acc = 0.41773 -> best": "",
+   "[ Valid | 004/005 ] loss = 1.51670, acc = 0.48862 -> best": ""
+}

@@ -1,0 +1,30 @@
+{
+   "seed" : 6666,
+
+   "_exp_name" : "sample",
+   "_dataset_dir" : "./food11",
+
+   "lambda": 3,
+   "random_transform_times": 6,
+   "input_size": 192,
+   "model_name": "sample",
+   "batch_size" : 32,
+   "n_epochs" : 5,
+   "patience" : 300,
+   "validation_iter": 3000,
+   "criterion" : "CrossEntropy",
+
+   "optimizer" : "AdamW",
+   "learning_rate": 0.003,
+   "weight_decay": 0.05,
+   "momentum":0.001,
+
+   "lookahead" : 0,
+
+   "stn" : "",
+   "ensemble": 0,
+   "ensemble_ratio": 0.5,
+
+   "change": "adam-->adamW lr 0.0003-->0.003  weight_decay: 0.00001 --> 0.05  Thin_plate_spline-->'' ensemble 1-->0 convnext-->sample",
+   "[ Valid | 005/005 ] loss = 1.14862, acc = 0.64535 -> best": ""
+}

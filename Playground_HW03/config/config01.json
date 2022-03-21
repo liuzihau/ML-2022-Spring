@@ -1,0 +1,29 @@
+{
+   "seed" : 6666,
+
+   "_exp_name" : "sample",
+   "_dataset_dir" : "./food11",
+
+   "lambda": 0.3,
+   "random_transform_times": 6,
+
+   "batch_size" : 8,
+   "n_epochs" : 5,
+   "patience" : 300,
+
+   "criterion" : "CrossEntropy",
+
+   "optimizer" : "Adam",
+   "learning_rate": 0.0003,
+   "weight_decay": 0.00001,
+   "momentum":0.001,
+
+   "lookahead" : 0,
+
+   "stn" : "Spatial_transformer_network",
+   "ensemble": 1,
+   "ensemble_ratio": 0.5,
+
+   "loss":0.99703,
+   "acc":0.70843
+}
