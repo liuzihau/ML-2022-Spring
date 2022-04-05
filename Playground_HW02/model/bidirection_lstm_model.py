@@ -28,8 +28,7 @@ class Classifier(nn.Module):
     def __init__(self, input_dim, output_dim=41, hidden_layers=1, hidden_dim=256, seq=False):
         super(Classifier, self).__init__()
         self.seq = seq
-        self.input_dimension = int(39)
-        self.sequence_length = int(input_dim / 39)
+        self.input_dimension = input_dim
         self.hidden_size = hidden_dim
         self.num_layers = hidden_layers
         self.basic_block = nn.Sequential(

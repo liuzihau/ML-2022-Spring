@@ -1,14 +1,14 @@
 import json
+import gc
+
 # Pytorch
 import torch
 
 from dataset import LibriDataset
 # from model.dnn_model import Classifier
 from model.bidirection_lstm_model import Classifier
-
 import train
 import utils
-import gc
 
 # Configurations
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
