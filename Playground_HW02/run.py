@@ -4,8 +4,7 @@ import torch
 
 from dataset import LibriDataset
 # from model.dnn_model import Classifier
-# from model.bidirection_lstm_model import Classifier
-from model.bidirection_lstm_model5 import Classifier5
+from model.bidirection_lstm_model import Classifier
 
 import train
 import utils
@@ -20,18 +19,13 @@ with open('./config/config.json', 'r', encoding="utf-8") as f:
 train_loader, validation_loader, test_loader, train_len, validation_len = utils.load_data(config, LibriDataset)
 # # fix random seed
 utils.same_seeds(config["seed"])
-#
-# # create model
-if config["loss"] == "CTC":
-    ctc = True
-elif config["loss"] == "sequence":
-    ctc = False
-    seq = True
-else:
-    ctc = False
 
-model = Classifier5(input_dim=config["input_dim"] * config["concat_nframes"],
-                    hidden_layers=config["hidden_layers"], hidden_dim=config["hidden_dim"], ctc=ctc, seq=seq).to(device)
+# # create model
+if config["loss"] == "sequence":
+    seq = True
+
+model = Classifier(input_dim=config["input_dim"] * config["concat_nframes"],
+                   hidden_layers=config["hidden_layers"], hidden_dim=config["hidden_dim"], seq=seq).to(device)
 
 train.trainer(train_loader, validation_loader, model, config, device, train_len, validation_len)
 

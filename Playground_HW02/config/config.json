@@ -1,6 +1,6 @@
 {
     "concat_nframes": 75,
-    "train_ratio": 0.99,
+    "train_ratio": 0.9,
 
     "seed": 0,
     "batch_size": 32,
@@ -14,8 +14,6 @@
     "hidden_layers": 10,
     "hidden_dim": 256,
 
-    "model_name": "bidirection_lstm_model5"
-
-
+    "model_name": "bidirection_lstm_model"
 
 }

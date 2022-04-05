@@ -84,9 +84,7 @@ def preprocess_data(split, feat_dir, phone_path, concat_nframes, config, train_r
     max_len = 3000000
     X = torch.empty(max_len, 39 * concat_nframes)
     if mode != 'test':
-        if config["loss"] == "CTC":
-            y = torch.empty(max_len, concat_nframes, dtype=torch.long)
-        elif config["loss"] == "sequence":
+        if config["loss"] == "sequence":
             y = torch.empty(max_len, concat_nframes, dtype=torch.long)
         else:
             y = torch.empty(max_len, dtype=torch.long)
@@ -97,11 +95,7 @@ def preprocess_data(split, feat_dir, phone_path, concat_nframes, config, train_r
         cur_len = len(feat)
         feat = concat_feat(feat, concat_nframes)
         if mode != 'test':
-            if config["loss"] == "CTC":
-                label = torch.LongTensor(label_dict[fname])
-                label = label.view(-1, 1)
-                label = concat_feat(label, concat_nframes)
-            elif config["loss"] == "sequence":
+            if config["loss"] == "sequence":
                 label = torch.LongTensor(label_dict[fname])
                 label = label.view(-1, 1)
                 label = concat_feat(label, concat_nframes)
@@ -110,9 +104,7 @@ def preprocess_data(split, feat_dir, phone_path, concat_nframes, config, train_r
 
         X[idx: idx + cur_len, :] = feat
         if mode != 'test':
-            if config["loss"] == "CTC":
-                y[idx: idx + cur_len, :] = label
-            elif config["loss"] == "sequence":
+            if config["loss"] == "sequence":
                 y[idx: idx + cur_len, :] = label
             else:
                 y[idx: idx + cur_len] = label
