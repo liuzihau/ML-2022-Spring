@@ -1,5 +1,5 @@
 {
-    "concat_nframes": 75,
+    "concat_nframes": 37,
     "train_ratio": 0.9,
 
     "seed": 0,

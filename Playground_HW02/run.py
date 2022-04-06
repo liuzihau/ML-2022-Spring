@@ -24,7 +24,7 @@ utils.same_seeds(config["seed"])
 if config["loss"] == "sequence":
     seq = True
 
-model = Classifier(input_dim=config["input_dim"] * config["concat_nframes"],
+model = Classifier(input_dim=config["input_dim"],
                    hidden_layers=config["hidden_layers"], hidden_dim=config["hidden_dim"], seq=seq).to(device)
 
 train.trainer(train_loader, validation_loader, model, config, device, train_len, validation_len)
