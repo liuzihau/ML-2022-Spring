@@ -4,13 +4,12 @@ import torch
 import random
 from pathlib import Path
 from torch.utils.data import Dataset
-from torch.nn.utils.rnn import pad_sequence
 
 
 class myDataset(Dataset):
-    def __init__(self, data_dir, segment_len=128):
+    def __init__(self, data_dir, config):
         self.data_dir = data_dir
-        self.segment_len = segment_len
+        self.segment_len = config['segment_len']
 
         # Load the mapping from speaker neme to their corresponding id.
         mapping_path = Path(data_dir) / "mapping.json"
@@ -53,7 +52,8 @@ class myDataset(Dataset):
 
 
 class InferenceDataset(Dataset):
-    def __init__(self, data_dir):
+    def __init__(self, config):
+        data_dir = config['data_dir']
         testdata_path = Path(data_dir) / "testdata.json"
         metadata = json.load(testdata_path.open())
         self.data_dir = data_dir
@@ -70,4 +70,28 @@ class InferenceDataset(Dataset):
         return feat_path, mel
 
 
+class InferenceDataset2(Dataset):
+    def __init__(self, config):
+        data_dir = config['data_dir']
+        self.segment_len = config['segment_len']
+        testdata_path = Path(data_dir) / "testdata.json"
+        metadata = json.load(testdata_path.open())
+        self.data_dir = data_dir
+        self.data = metadata["utterances"]
 
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        utterance = self.data[index]
+        feat_path = utterance["feature_path"]
+        mel = torch.load(os.path.join(self.data_dir, feat_path))
+        if len(mel) > self.segment_len:
+            # Randomly get the starting point of the segment.
+            start = random.randint(0, len(mel) - self.segment_len)
+            # Get a segment with "segment_len" frames.
+            mel = torch.FloatTensor(mel[start:start + self.segment_len])
+        else:
+            mel = torch.FloatTensor(mel)
+
+        return feat_path, mel

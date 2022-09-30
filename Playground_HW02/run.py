@@ -21,6 +21,7 @@ train_loader, validation_loader, test_loader, train_len, validation_len = utils.
 utils.same_seeds(config["seed"])
 
 # # create model
+seq = False
 if config["loss"] == "sequence":
     seq = True
 

@@ -1,0 +1,12 @@
+sentencepiece
+omegaconf
+hydra-core
+bitarray
+sacrebleu
+editdistance
+matplotlib
+sacremoses
+tqdm
+wandb
+ninja
+tensorboardX

@@ -122,7 +122,7 @@ class ConformerConvModule(nn.Module):
     Outputs: outputs
         outputs (batch, time, dim): Tensor produces by conformer convolution module.
     """
-    def __init__(
+    def  __init__(
             self,
             in_channels: int,
             kernel_size: int = 31,

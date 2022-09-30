@@ -3,8 +3,8 @@ import numpy as np
 import random
 
 import torch
-from dataset import myDataset, InferenceDataset
-from torch.utils.data import DataLoader, random_split
+from dataset import myDataset, InferenceDataset, InferenceDataset2
+from torch.utils.data import DataLoader, random_split, Subset
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LambdaLR
@@ -31,6 +31,16 @@ def collate_batch(batch):
     return mel, torch.FloatTensor(speaker).long()
 
 
+def collate_batch_for_adaptation(batch):
+    # Process features within a batch.
+    """Collate a batch of data."""
+    feat_paths, mel = zip(*batch)
+    # train the model batch by batch, we need to pad the features in the same batch to make their lengths the same.
+    mel = pad_sequence(mel, batch_first=True, padding_value=-20)  # pad log 10^(-20) which is very small value.
+    # mel: (batch size, length, 40)
+    return mel, feat_paths
+
+
 def inference_collate_batch(batch):
     """Collate a batch of data."""
     feat_paths, mels = zip(*batch)
@@ -38,18 +48,23 @@ def inference_collate_batch(batch):
     return feat_paths, torch.stack(mels)
 
 
-def get_dataloader(config):
+def get_dataloader(config, i=None):
     """Generate dataloader"""
     data_dir = config['data_dir']
     batch_size = config['batch_size']
     n_workers = config['n_workers']
-    dataset = myDataset(data_dir)
-    testset = InferenceDataset(data_dir)
+    dataset = myDataset(data_dir, config)
+    testset = InferenceDataset(config)
+    testset2 = InferenceDataset2(config)
+
     speaker_num = dataset.get_speaker_number()
     # Split dataset into training dataset and validation dataset
-    trainlen = int(0.9 * len(dataset))
-    lengths = [trainlen, len(dataset) - trainlen]
-    trainset, validset = random_split(dataset, lengths)
+    if i!=None:
+        trainset = Subset(dataset, [k for k in range(len(dataset)) if k % 5 != i])
+        validset = Subset(dataset, [k for k in range(len(dataset)) if k % 5 == i])
+    else:
+        trainset = Subset(dataset, [k for k in range(len(dataset)) if k % 5 != 4])
+        validset = Subset(dataset, [k for k in range(len(dataset)) if k % 5 == 4])
 
     train_loader = DataLoader(
         trainset,
@@ -76,8 +91,17 @@ def get_dataloader(config):
         num_workers=n_workers,
         collate_fn=inference_collate_batch,
     )
+    test_loader2 = DataLoader(
+        testset2,
+        batch_size=batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=n_workers,
+        pin_memory=True,
+        collate_fn=collate_batch_for_adaptation,
+    )
 
-    return train_loader, valid_loader, test_loader, speaker_num
+    return train_loader, valid_loader, test_loader, test_loader2,speaker_num
 
 
 def get_cosine_schedule_with_warmup(
