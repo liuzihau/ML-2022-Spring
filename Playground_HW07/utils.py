@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import yaml
 import json
-
+import re
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -76,10 +76,38 @@ def evaluate(data, tokenizer, output):
         # Replace answer if calculated probability is larger than previous windows
         if prob > max_prob:
             max_prob = prob
-            # Convert tokens to chars (e.g. [1920, 7032] --> "大 金")
-            answer = tokenizer.decode(data[0][0][k][start_index : end_index + 1])
-
+            # Convert tokens to chars (e.g. [1920, 7032] --> "大 金"
+            if 0 in  data[0][0][k][start_index : end_index + 1]: 
+                pad_s = 5
+                pad_e = 0
+                target = data[0][0][k][start_index-pad_s : start_index]
+                if 102 in target:
+                    para_start = (target == 102).nonzero(as_tuple=True)[0].to("cuda")
+                    pad_s = pad_s - para_start - 1
+                    pad_e = 3         
+            else:
+                pad_s = 0
+                pad_e = 0
+            answer = tokenizer.decode(data[0][0][k][start_index-pad_s : end_index + 1+ pad_e])
+   
+    answer = answer.replace(' ','')
+    
+    answer = search_paragraphs(answer,pad_s,pad_e)
     # Remove spaces in answer (e.g. "大 金" --> "大金")
-    return answer.replace(' ','')
+    return answer
 
+def search_paragraphs(answer,pad_s,pad_e):
+    with open(f"./hw7_test.json","r",encoding="utf-8") as f:
+        d = json.loads(f.read())
+    if '[UNK]' in answer:
+        for paragraph in d['paragraphs']:
+            n_pattern = answer.replace('[UNK]','[\S]')
+            res = re.search(r''+n_pattern,paragraph)
+            if res:
+                answer = res.group(0)[pad_s:] if not pad_e else res.group(0)[pad_s:-pad_e]
+                #print(answer)
+                return answer
+    answer = answer[pad_s:] if not pad_e else answer[pad_s:-pad_e]
+    #print(answer)
+    return answer
 

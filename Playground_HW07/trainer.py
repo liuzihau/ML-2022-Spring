@@ -87,7 +87,8 @@ def train_model(model, opt, tokenizer, train_loader, dev_questions, dev_loader, 
                                             attention_mask=data[2].squeeze(dim=0).to(opt.device))
                     # prediction is correct only if answer text exactly matches
                     dev_acc += evaluate(data, tokenizer, output) == dev_questions[i]["answer_text"]
-                print(f"Validation | Epoch {epoch + 1} | acc = {dev_acc / len(dev_loader):.3f}")
+                    dev_acc_avg = dev_acc / len(dev_loader)
+                    print(f"Validation | Epoch {epoch + 1} | acc = {dev_acc_avg:.3f}")
             model.train()
 
             # Save a model and its configuration file to the directory 「saved_model」 

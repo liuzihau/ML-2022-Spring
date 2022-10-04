@@ -24,7 +24,6 @@ class QA_Dataset(Dataset):
         question = self.questions[idx]
         tokenized_question = self.tokenized_questions[idx]
         tokenized_paragraph = self.tokenized_paragraphs[question["paragraph_id"]]
-
         ##### TODO: Preprocessing #####
         # Hint: How to prevent model from learning something it should not learn
 
@@ -65,18 +64,16 @@ class QA_Dataset(Dataset):
             
             # Paragraph is split into several windows, each with start positions separated by step "doc_stride"
             for i in range(0, len(tokenized_paragraph), self.doc_stride):
-                
                 # Slice question/paragraph and add special tokens (101: CLS, 102: SEP)
                 input_ids_question = [101] + tokenized_question.ids[:self.max_question_len] + [102]
                 input_ids_paragraph = tokenized_paragraph.ids[i : i + self.max_paragraph_len] + [102]
-                
+
                 # Pad sequence and obtain inputs to model
                 input_ids, token_type_ids, attention_mask = self.padding(input_ids_question, input_ids_paragraph)
-                
                 input_ids_list.append(input_ids)
                 token_type_ids_list.append(token_type_ids)
                 attention_mask_list.append(attention_mask)
-            
+        
             return torch.tensor(input_ids_list), torch.tensor(token_type_ids_list), torch.tensor(attention_mask_list)
 
     def padding(self, input_ids_question, input_ids_paragraph):
