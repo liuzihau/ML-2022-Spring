@@ -1,0 +1,56 @@
+baseline
+0.47
+implement linear decay lr
+0.56053
+change model ckip qa
+0.69410
+linear decay lr add warm up 0.2 step
+0.74697 !? (but loss in training = 1.433 acc = 0.584 dev acc = 0.616)
+change answer searching method from mid to anywhere
+0.70540(train loss = 1.564, acc = 0.554 dev acc = 0.580)
+change answer searching method from mid to anywhere[pad:-pad]
+0.74535(train loss = 1.423, acc = 0.577 dev acc = 0.614)
+change strip from no overlap to overlap 1/3 paragraphs
+0.75625(train loss = 1.423, acc = 0.577 dev acc = 0.629)
+edit postprocess force end index behind start index
+0.76150
+edit postprocess force end index behind start index and force start index behind end index and choose bigger prob
+0.76472
+fix schedule mistake and add accumulation and change model to luhua_roberta
+0.80148
+change accumulation from 4 to 8 (8 batch) and lr from 0.0001 to 0.00005
+0.80548
+# change epoch to 3 and lr from 0.00005 to 0.00003
+# 0.7966
+change max paragraphs length from 150 to 240 (batch 4 accum 16)
+0.80750
+epoch from 1 to 2 , fix schdule bug
+0.80831
+question length 40->80 stride 0.66 ->0.5 * paragraphs' length
+0.81678
+ensemble 4
+0.81961
+no ensemble, validation every 1600 step(200 if batch = 32) and choose best validation model
+0.81759
+no ensemble, max paragraphs length from 240 to 300
+0.81517
+no ensemble, use uer_roberta-base-chinese-extractive-qa max paragraphs down to 240
+0.75181
+ensemble 5, slightly fix evaluate bug(force start point not to be the last one)
+0.82324
+ensemble 5, doc stride 0.5 -> 0.25
+0.81719
+ensemble 5, replace UNK
+0.82445
+no ensemble, replace UNK
+0.8200x
+no ensemble, pad 0.1->0.15
+0.80387
+no ensemble, pad 0.1->0.0001
+0.81073
+no ensemble, pad 0.1 epoch 5 lr 0.00005-->0.00002
+0.81315
+ensemble 8 
+0.82445
+fix some unk replace bug
+0.82687

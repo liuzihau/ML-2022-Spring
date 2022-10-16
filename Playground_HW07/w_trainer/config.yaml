@@ -1,0 +1,28 @@
+model_name: "luhua_chinese_pretrain_mrc_roberta_wwm_ext_large"
+train_data_name: "data/hw7_train.json"
+dev_data_name: "data/hw7_dev.json"
+test_data_name: "data/hw7_test.json"
+
+seed: 0
+fp16_training: True
+save_baseline: 0.75
+train: True
+ensemble: False
+cv_number: 8
+use_finetune_model: False
+max_question_len: 120
+max_paragraph_len: 240
+doc_stride: 0.50
+answer_pad: 0.1  # answer appear in paragraphs[max_len*answer_pad : -max_len*answer_pad]
+train_batch_size: 4
+accum_iter: 8
+num_epoch: 3
+learning_rate: 0.00005
+warm_up_ratio: 0.2
+label_smoothing_factor: 0.1
+model_save_dir: "model"
+logging_step: 244
+validation: True
+random_pick_ratio: 0.3
+tw_to_s: False
+pick_method: 'random'

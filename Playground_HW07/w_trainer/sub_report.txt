@@ -1,0 +1,33 @@
+1.random choose 0.5 / epoch 3 / label smoothing 0.1 / accum 16 / batch 4
+0.80629
+2. epoch 3 --> 5
+0.80307
+3. warmup ratio 0.2-->0[use this setting below?]
+0.80468
+4. random choose 0.5 --> 0.3[use this setting below]
+0.80669
+5. use simplified text
+0.80589
+6. accum 16 --> 8
+0.80912
+7. lr 0.00005 -->0.00001(epoch3-->5 for this change)
+0.80548
+===change unk replace method=== add about 0.003
+0.80871
+8. use final pt instead of use best pt
+0.80790
+9. random choose 0.3 --> 0.1[warm up ratio = 0]
+0.80710
+10 remove label smoothing[warm up ratio = 0]
+0.80347 wtf
+11 remove label smoothing[warm up ratio = 0.2]
+0.81194 wtf
+12 remove label smoothing and random choose 0.3 --> 0
+0.80589 
+===lr 0.00005 epoch 3 accum 8 batch 4 label smoothing 0 random choose 0.3 warm up 0.2===
+13 use greedy dataset like evaluate
+0.77602
+14 change model to hfl/hfl_chinese_roberta_wwm_ext_large
+0.80790
+15 random choose 0.3-->0.7
+0.79822

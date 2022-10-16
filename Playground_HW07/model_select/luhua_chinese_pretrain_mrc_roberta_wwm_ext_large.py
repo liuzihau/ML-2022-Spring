@@ -5,7 +5,3 @@ def get_model_and_token(opt):
     model = AutoModelForQuestionAnswering.from_pretrained(f"luhua/{model_name}").to(opt.device)
     tokenizer = AutoTokenizer.from_pretrained(f"luhua/{model_name}")
     return model, tokenizer
-
-
-
-
