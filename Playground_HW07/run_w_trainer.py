@@ -9,35 +9,20 @@ import torch
 from torch.utils.data import DataLoader 
 from tqdm.auto import tqdm
 
-from utils import get_config, same_seeds,read_data, tokenize_data
+from model_select.model_select import get_model_and_token
+from utils import get_config, same_seeds, read_data, tokenize_data, average_checkpoints
 from w_trainer.dataset import QA_Dataset
 from w_trainer.trainer import get_trainer
 from fairseq.average_checkpoints import main 
 
 opt = get_config("./w_trainer/config.yaml")
-
-save_path =f"{opt.model_save_dir}_{opt.model_name}_latest"
-opt.model_save_dir = save_path
-
+opt.model_save_dir = f"{opt.model_save_dir}_{opt.model_name.replace('/','_')}_latest"
 opt.device = "cuda" if torch.cuda.is_available() else "cpu"
 # Fix random seed for reproducibility
 same_seeds(opt.seed)
 
-if opt.model_name == "bert-base-chinese":
-    from model_select.bert_base_chinese import get_model_and_token
-elif opt.model_name == "ckiplab-bert-base-chinese-qa":
-    from model_select.ckiplab_bert_base_chinese_qa import get_model_and_token
-elif opt.model_name == "hfl_chinese_roberta_wwm_ext_large":
-    from model_select.hfl_chinese_roberta_wwm_ext_large import get_model_and_token
-elif opt.model_name == "luhua_chinese_pretrain_mrc_roberta_wwm_ext_large":
-    from model_select.luhua_chinese_pretrain_mrc_roberta_wwm_ext_large import get_model_and_token
-elif opt.model_name == "luhua_chinese_pretrain_mrc_macbert_large":
-    from model_select.luhua_chinese_pretrain_mrc_macbert_large import get_model_and_token
-elif opt.model_name == "uer_roberta-base-chinese-extractive-qa":
-    from model_select.uer_roberta_base_chinese_extractive_qa import get_model_and_token
-
 print(f"[Info] Load model and tokenizer...")
-model, tokenizer = get_model_and_token(opt)
+model, tokenizer = get_model_and_token(opt.model_name, opt.device)
 print(f"[Info] Load success!")
 trainer = None
 
@@ -51,17 +36,6 @@ if opt.train:
         question_start_index = len(questions1)
         paragraph_start_index = len(paragraphs1)
         questions2, paragraphs2 = read_data(opt.dev_data_name)
-        if opt.tw_to_s:
-            from opencc import OpenCC
-            cc = OpenCC('tw2s')
-            for question in questions1:
-                question['question_text'] = cc.convert(question['question_text'])
-                question['answer_text'] = cc.convert(question['answer_text'])
-            for question in questions2:
-                question['question_text'] = cc.convert(question['question_text'])
-                question['answer_text'] = cc.convert(question['answer_text'])
-            paragraphs1 = [cc.convert(paragraph) for paragraph in paragraphs1]
-            paragraphs2 = [cc.convert(paragraph) for paragraph in paragraphs2]
 
         for q in questions2:
             q["id"] += question_start_index
@@ -81,43 +55,31 @@ if opt.train:
             dev_questions = questions[k*dev_length:(k+1)*dev_length]
         
             train_questions_tokenized, paragraphs_tokenized = tokenize_data(tokenizer,train_questions, paragraphs)
-            train_set = QA_Dataset(opt, "train", train_questions, train_questions_tokenized, paragraphs_tokenized)
+            train_set = QA_Dataset(opt, "train", train_questions, paragraphs, train_questions_tokenized, paragraphs_tokenized)
             dev_questions_tokenized, paragraphs_tokenized = tokenize_data(tokenizer, dev_questions, paragraphs)
-            dev_set = QA_Dataset(opt, "dev", dev_questions, dev_questions_tokenized, paragraphs_tokenized)
+            dev_set = QA_Dataset(opt, "dev", dev_questions, paragraphs, dev_questions_tokenized, paragraphs_tokenized)
             
             print(f"[Info] Load trainer...")
             opt.current_cv_number = k
             trainer = get_trainer(opt, model, train_set, dev_set,dev_questions, tokenizer)
             print(f"[Info] Load success!")
             trainer.train()
+            if opt.save_mode == 'avg_best' or 'avg_last':
+                average_checkpoints(opt, opt.save_mode)
 
-            model, tokenizer = get_model_and_token(opt)
+            model, tokenizer = get_model_and_token(opt.model_name, opt.device)
         
-        # need do average
-        output_model_path = f"{opt.model_save_dir}/avg_last_{opt.cv_number}_checkpoint.pt"
-        sys.argv = sys.argv + ["--inputs"] + [opt.model_save_dir] + ["--num-epoch-checkpoints"] + [str(opt.cv_number)] + ["--output"] + [output_model_path]
-        print(sys.argv)
-        main()
+        average_checkpoints(opt, 'ensemble')
         checkpoint = torch.load(output_model_path)
         model.load_state_dict(checkpoint['model'])
     else:
         train_questions, train_paragraphs = read_data(opt.train_data_name)
         dev_questions, dev_paragraphs = read_data(opt.dev_data_name)
-        if opt.tw_to_s:
-            from opencc import OpenCC
-            cc = OpenCC('tw2s')
-            for question in train_questions:
-                question['question_text'] = cc.convert(question['question_text'])
-                question['answer_text'] = cc.convert(question['answer_text'])
-            train_paragraphs = [cc.convert(paragraph) for paragraph in train_paragraphs]
-            for question in dev_questions:
-                question['question_text'] = cc.convert(question['question_text'])
-                question['answer_text'] = cc.convert(question['answer_text'])
-            dev_paragraphs = [cc.convert(paragraph) for paragraph in dev_paragraphs]
+        
         train_questions_tokenized, train_paragraphs_tokenized = tokenize_data(tokenizer,train_questions,train_paragraphs)
-        train_set = QA_Dataset(opt, "train", train_questions, train_questions_tokenized, train_paragraphs_tokenized)
+        train_set = QA_Dataset(opt, "train", train_questions,train_paragraphs, train_questions_tokenized, train_paragraphs_tokenized)
         dev_questions_tokenized, dev_paragraphs_tokenized = tokenize_data(tokenizer,dev_questions,dev_paragraphs)
-        dev_set = QA_Dataset(opt, "dev", dev_questions, dev_questions_tokenized, dev_paragraphs_tokenized)
+        dev_set = QA_Dataset(opt, "dev", dev_questions,dev_paragraphs, dev_questions_tokenized, dev_paragraphs_tokenized)
     
         print(f"[Info] Load trainer...")
         opt.current_cv_number = None
@@ -148,24 +110,18 @@ if opt.use_finetune_model:
         model.load_state_dict(checkpoint)
 
 test_questions, test_paragraphs = read_data(opt.test_data_name)
-if opt.tw_to_s:
-    from opencc import OpenCC
-    cc = OpenCC('tw2s')
-    for question in test_questions:
-        question['question_text'] = cc.convert(question['question_text'])
-    test_paragraphs = [cc.convert(paragraph) for paragraph in test_paragraphs]
 
 test_questions_tokenized, test_paragraphs_tokenized = tokenize_data(tokenizer,test_questions,test_paragraphs)
-test_set = QA_Dataset(opt, "test", test_questions, test_questions_tokenized, test_paragraphs_tokenized)
+test_set = QA_Dataset(opt, "test", test_questions, test_paragraphs, test_questions_tokenized, test_paragraphs_tokenized)
 test_loader = DataLoader(test_set, batch_size=1, shuffle=False, pin_memory=True)
 
 if not trainer:
     train_questions, train_paragraphs = read_data(opt.train_data_name)
     train_questions_tokenized, train_paragraphs_tokenized = tokenize_data(tokenizer,train_questions,train_paragraphs)
-    train_set = QA_Dataset(opt, "train", train_questions, train_questions_tokenized, train_paragraphs_tokenized)
+    train_set = QA_Dataset(opt, "train", train_questions, train_paragraphs, train_questions_tokenized, train_paragraphs_tokenized)
     dev_questions, dev_paragraphs = read_data(opt.dev_data_name)
     dev_questions_tokenized, dev_paragraphs_tokenized = tokenize_data(tokenizer,dev_questions,dev_paragraphs)
-    dev_set = QA_Dataset(opt, "dev", dev_questions, dev_questions_tokenized, dev_paragraphs_tokenized)
+    dev_set = QA_Dataset(opt, "dev", dev_questions, dev_paragraphs, dev_questions_tokenized, dev_paragraphs_tokenized)
 
     print(f"[Info] Load trainer...")
     trainer = get_trainer(opt, model, train_set, dev_set, dev_questions, tokenizer)

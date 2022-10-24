@@ -1,9 +1,15 @@
+import os
+import sys
+import shutil
 import random
 import numpy as np
 import torch
 import yaml
 import json
 import re
+
+from fairseq.average_checkpoints import main
+
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -110,4 +116,42 @@ def search_paragraphs(answer,pad_s,pad_e):
     answer = answer[pad_s:] if not pad_e else answer[pad_s:-pad_e]
     #print(answer)
     return answer
+def average_checkpoints(opt, save_mode):
+    number = opt.cv_number if save_mode == 'ensemble' else opt.avg_number
+    if not save_mode == 'ensemble':
+        output_model_path = f"{opt.model_save_dir}/{save_mode}_{number}_checkpoint_{opt.current_cv_number}.pt"
+    else:
+        output_model_path = f"{opt.model_save_dir}/{save_mode}_{number}_checkpoint.pt"
+    ckpt_folder = [folder for folder in os.listdir(opt.model_save_dir) if os.path.isdir(f"{opt.model_save_dir}/{folder}")]
+    ckpts = [ckpt for ckpt in os.listdir(opt.model_save_dir) if not os.path.isdir(f"{opt.model_save_dir}/{ckpt}") and 'None' not in ckpt]
+    if save_mode == 'avg_last':
+        target_folder = sorted(ckpt_folder, key = lambda c : int(c.split('-')[-1]))[-number:]
+        for folder in target_folder:
+            src = f"{opt.model_save_dir}/{folder}/pytorch_model.bin"
+            tgt = f"{opt.model_save_dir}/{folder.replace('-','_')}"
+            shutil.copy(src,tgt)
+    elif save_mode == 'avg_best':
+        with open(f"{opt.model_save_dir}/ckpt.txt",'r') as f:
+            score_record = f.read()
+            score_record = list(set(score_record.split('\n')[:-1]))
+            score_list = [{"folder":c.split(',')[0],"score":int(c.split(',')[1])} for c in score_record]
+        target_dict = sorted(score_list, key=lambda c:c['score'])[-number:]
+        target_folder = [ckpt['folder'] for ckpt in target_dict]
+        for folder in target_folder:
+            src = f"{opt.model_save_dir}/{folder}/pytorch_model.bin"
+            tgt = f"{opt.model_save_dir}/{folder.replace('-','_')}.pt"
+            shutil.copy(src,tgt)
+    elif save_mode == 'ensemble':
+        for ckpt in ckpts:
+            src = f"{opt.model_save_dir}/{ckpt}"
+            tgt = f"{opt.model_save_dir}/checkpoint{ckpt.split('checkpoint')[-1]}"
+            shutil.move(src ,tgt)
+    else:
+        raise Exception(f'unknown save strategy : {save_mode}, Please choose your save strategy from below : avg_last , avg_best , ensemble')
 
+    sys.argv = sys.argv + ["--inputs"] + [opt.model_save_dir] + ["--num-epoch-checkpoints"] + [str(number)] + ["--output"] + [output_model_path]
+    print(sys.argv)
+    main()
+    ckpts = [c for c in os.listdir(opt.model_save_dir) if 'pt' in c and 'avg' not in c and 'best' not in c]
+    for ckpt in ckpts:
+        os.remove(f"{opt.model_save_dir}/{ckpt}")

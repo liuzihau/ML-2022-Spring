@@ -4,11 +4,12 @@ import torch
 from torch.utils.data import Dataset
 
 class QA_Dataset(Dataset):
-    def __init__(self, opt, split, questions, tokenized_questions, tokenized_paragraphs):
+    def __init__(self, opt, split, questions, paragraphs, tokenized_questions, tokenized_paragraphs):
         super().__init__()
         self.split = split
         self.opt = opt
         self.questions = questions
+        self.paragraphs = paragraphs
         self.tokenized_questions = tokenized_questions
         self.tokenized_paragraphs = tokenized_paragraphs
         self.max_question_len = opt.max_question_len
@@ -53,11 +54,14 @@ class QA_Dataset(Dataset):
         """
         question = self.tokenized_questions[idx]
         paragraph = self.tokenized_paragraphs[self.questions[idx]["paragraph_id"]]
+        text = self.paragraphs[self.questions[idx]["paragraph_id"]]
+        
         if self.split in ['train', 'dev']:
             answer_start = self.questions[idx]["answer_start"]
             answer_end = self.questions[idx]["answer_end"]
             answer_start_tokenized = paragraph.char_to_token(answer_start)
             answer_end_tokenized = paragraph.char_to_token(answer_end)
+        
         if self.split == 'train':
 
             # random chioce paragraph start point
@@ -104,7 +108,7 @@ class QA_Dataset(Dataset):
                     ans_start_list.append(ans_start_shift)
                     ans_end_list.append(ans_end_shift)
             
-            return torch.tensor(sentence_list), torch.tensor(segmentation_list), torch.tensor(attention_mask_list), torch.tensor(ans_start_list), torch.tensor(ans_end_list)
+            return torch.tensor(sentence_list), torch.tensor(segmentation_list), torch.tensor(attention_mask_list), torch.tensor(ans_start_list), torch.tensor(ans_end_list), text
 
     
     def __len__(self):
